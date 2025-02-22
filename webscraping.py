@@ -63,10 +63,68 @@ def scrape_all_letters():
         
     print(name for name in all_names)
     print(f"NAMES: \n{all_names}")
-    with open("credit_card_names.txt", "w") as file:
+    with open("credit_card_names.txt", "w", encoding="utf-8") as file:
         for name in all_names:
             file.write(name + "\n")
+
+
+def get_descriptions(letter ='A'):
+    
+    driver = webdriver.Chrome()
+    url = "https://www.cardratings.com/credit-card-list.html"
+    driver.get(url)
+    try:
+
+        letter_selector = f"a.div_{letter}"
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, letter_selector))
+        )
+        # Find and click the letter link
+        letter_link = driver.find_element(By.CSS_SELECTOR, letter_selector)
+        letter_link.click()
+    except Exception as e:
+        print(f"============\n===============\nERROR WHEN TRYING TO RUN SELECTOR: {e}")
+        driver.quit()
+        return []
+    
+    time.sleep(20)
+    page_source = driver.page_source
+    soup = BeautifulSoup(page_source, 'html.parser')
+    driver.quit()
+    descriptions = []
+    span_tags = soup.find('span', id = 'sh-quidget-4')
+    if not span_tags:
+        print(f"Span not found for id")
+        #continue
+    '''li_tags = span_tags.find_all('li')
+    embedded_descrips = ""
+    for li in li_tags:
+        info = li.get_text(strip=True)
+        embedded_descrips = embedded_descrips + info + "\n"
+    print(f"DESCRIPS FOR SQ 4: {embedded_descrips}")'''
+    for i in range(0,259):
+        id = "sh-quidget-" + str(i)
+        span_tags = soup.find('span', id = id)
+        if not span_tags:
+            #print(f"Span not found for id {id}")
+            continue
+        else:
+            print(f"SPAN TAG FOUND FOR: {id}")  
+            li_tags = span_tags.find_all('li')
+            embedded_descrips = ""
+            for li in li_tags:
+                info = li.get_text(strip=True)
+                embedded_descrips = embedded_descrips + info + "\n"
+            if not embedded_descrips.strip() == "":
+                descriptions.append(embedded_descrips)
+    print("DESCRIPTIONS length: ", len(descriptions))
+    with open("descriptions.txt", "w", encoding="utf-8") as file:
+        for descrip in descriptions:
+            pre = "Name:\nDescription: "
+            file.write(pre + descrip + "\n" + "=" * 60 + "\n")
         
+    #print(f'A TAGS: {a_tags}')
+    
         
 
 
@@ -150,13 +208,42 @@ def scrap_page_using_selenium(url):
     '''
 
 
+def join():
+    names = []
+    with open("credit_card_names.txt", "r") as names_file:
+        names = [line.strip() for line in names_file if line.strip()]
+    #print(names)
+    
+    i = 0
+    lines = None
+    with open("descriptions.txt", "r") as desc_file:
+        lines = desc_file.readlines()
+        
+        #print(lines[3])
+    
+    
+    with open("n_and_dA_to_C.txt", "w") as desc_file:
+        #lines = desc_file.readlines()
+        #print(lines[3])
+        for line in lines:
+            if line.startswith("Name:"):
+                # Replace this line with the names joined by commas.
+                updated_line = "Name: " + names[i] + "\n"
+                desc_file.write(updated_line)
+                i +=1
+            else:
+                desc_file.write(line)
+            
+
 
 if __name__ == '__main__':
 
     num_args = len(sys.argv) - 1
     #scrap_page_using_selenium("https://www.cardratings.com/credit-card-list.html")
-    scrape_all_letters()
+    #scrape_all_letters()
     #scrape_by_letter('D')
+    #get_descriptions('A')
+    join()
     '''if num_args == 0:
         print('no URL provided')
         sys.exit()
