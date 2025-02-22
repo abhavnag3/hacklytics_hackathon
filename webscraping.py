@@ -46,7 +46,7 @@ def get_all_credit_names(names_list):
 
 def scrape_all_letters():
     all_names = []
-    for i in range(65, 70):
+    for i in range(65, 92): #dont actually let this run to 92. Play with it around 70 that way ur not waiting around alot
         print(f"\n==================So far we have {len(all_names)} total names\n=================")
         #convert ascii of character a-z ot char
         print(f"=====================\nGoing to get card names from letter {chr(i)}\n================\n")
@@ -63,6 +63,9 @@ def scrape_all_letters():
         
     print(name for name in all_names)
     print(f"NAMES: \n{all_names}")
+    with open("credit_card_names.txt", "w") as file:
+        for name in all_names:
+            file.write(name + "\n")
         
         
 
