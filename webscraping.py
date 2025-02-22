@@ -44,6 +44,29 @@ def get_all_credit_names(names_list):
     for url_name in names_list:
         scrap_page_using_selenium(url_name)
 
+def scrape_all_letters():
+    all_names = []
+    for i in range(65, 70):
+        print(f"\n==================So far we have {len(all_names)} total names\n=================")
+        #convert ascii of character a-z ot char
+        print(f"=====================\nGoing to get card names from letter {chr(i)}\n================\n")
+        names_of_letter = scrape_by_letter(chr(i))
+        delimiter = 49 #index of last credit card name that starts with C
+        if i == 65:
+            delimiter = 0
+            all_names = all_names + names_of_letter[delimiter:]
+        if i == 66 or i == 67 or len(names_of_letter) == 49:
+            continue #skip if either the letter is 'A' or 'B' or if there are no credit card names in that letter
+        else:
+            all_names = all_names + names_of_letter[delimiter:]
+        print(f"\n==================So far we have {len(all_names)} total names\n=================")
+        
+    print(name for name in all_names)
+    print(f"NAMES: \n{all_names}")
+        
+        
+
+
 
 def scrape_by_letter(letter = "A"):
     driver = webdriver.Chrome()
@@ -76,10 +99,11 @@ def scrape_by_letter(letter = "A"):
         for a in a_tags
         if a.get_text(strip = True) not in unwanted_texts
     ]
-    
+    return credit_card_names
 
-    print(credit_card_names)
-    print(f"===================\n====================\n=============\nLength of credit card name array: {len(credit_card_names)}")
+    #print(credit_card_names)
+    #print(f"===================\n====================\n=============\nLength of credit card name array: {len(credit_card_names)}")
+    #print(f"===================\n====================\n=============\nLast element of 'C' is index 48. Which is card name: ${credit_card_names[48]}")
     
 
 
@@ -127,8 +151,9 @@ def scrap_page_using_selenium(url):
 if __name__ == '__main__':
 
     num_args = len(sys.argv) - 1
-    scrap_page_using_selenium("https://www.cardratings.com/credit-card-list.html")
-    #scrape_by_letter('R')
+    #scrap_page_using_selenium("https://www.cardratings.com/credit-card-list.html")
+    scrape_all_letters()
+    #scrape_by_letter('D')
     '''if num_args == 0:
         print('no URL provided')
         sys.exit()
