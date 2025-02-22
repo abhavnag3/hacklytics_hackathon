@@ -234,7 +234,19 @@ def join():
             else:
                 desc_file.write(line)
             
-
+def cards():
+    lines = []
+    with open('credit_card_data.txt', 'r') as file:
+        lines = file.readlines()
+    #print(lines)
+    with open('credit_card_data.txt', 'w') as file:
+        for line in lines:
+            if line.startswith("Name:"):
+                s = line.replace("Name:", "Credit Card Name:")
+                file.write(s)
+            else:
+                file.write(line)
+            
 
 if __name__ == '__main__':
 
@@ -243,7 +255,8 @@ if __name__ == '__main__':
     #scrape_all_letters()
     #scrape_by_letter('D')
     #get_descriptions('A')
-    join()
+    #join()
+    cards()
     '''if num_args == 0:
         print('no URL provided')
         sys.exit()
