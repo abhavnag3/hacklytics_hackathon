@@ -24,6 +24,8 @@ parsed_cards = []
 FEATURE_KEYWORDS = ["miles", "points", "earn", "cash back", "bonus", "fee", "credit", 
                     "foreign transaction", "no annual fee", "protection", "apr"]
 
+# first script in the pipeline
+
 def extract_features(text):
     """Returns True if a line contains useful card details."""
     return any(word in text.lower() for word in FEATURE_KEYWORDS)

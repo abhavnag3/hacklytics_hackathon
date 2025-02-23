@@ -1,3 +1,5 @@
+# fourth script in pipeline
+
 from langchain_chroma import Chroma
 from openai import OpenAI
 from dotenv import load_dotenv

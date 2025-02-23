@@ -19,12 +19,16 @@ def chunk_card(card):
     """ Breaks a credit card's data into individual chunks while keeping metadata """
     chunks = []
     card_name = card.get("name", "Unknown Card")
+    credit_needed = card.get("credit_needed", "Not Specified")  # New metadata field
 
     # Process each feature as a separate chunk
     for feature in card.get("features", []):
         chunks.append({
             "text": f"{card_name}: {feature}",
-            "metadata": {"card_name": card_name}
+            "metadata": {
+                "card_name": card_name,
+                "credit_needed": credit_needed  # Add credit requirement to metadata
+            }
         })
 
     return chunks
