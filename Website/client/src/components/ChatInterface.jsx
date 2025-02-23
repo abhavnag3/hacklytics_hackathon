@@ -8,6 +8,7 @@ import { ArrowLeft, Send } from "lucide-react";
 export default function ChatInterface() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [queryResponse, setQueryResponse] = useState([]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (message.trim()) {
@@ -23,7 +24,11 @@ export default function ChatInterface() {
           body: JSON.stringify({ message: message }),
         });
         const data = await response.json();
+        
         console.log('Server response:', data);
+        console.log('ACTUAL DATA: ', data.message)
+        setQueryResponse(data.message)
+
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -47,12 +52,12 @@ export default function ChatInterface() {
           
           <div className="flex-1 overflow-y-auto mb-4 p-4 bg-gray-50 rounded-lg">
             
-            {/* Chat messages would go here */
-              messages.map((msg, index) => (
-              <div key={index} className="mb-2 p-2 bg-white rounded shadow">
-                {msg}
+            {/* Display the query response */}
+            {queryResponse && (
+              <div className="mb-2 p-2 bg-white rounded shadow">
+                {queryResponse}
               </div>
-            ))}
+            )}
             
           </div>
 
