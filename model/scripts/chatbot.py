@@ -1,48 +1,77 @@
-# fourth script in pipeline
-
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import Chroma
 from openai import OpenAI
 from dotenv import load_dotenv
-import embeddings # Ensure this matches your embeddings file name
+import embeddings  
 import os
 
 load_dotenv()
 
-def query_with_langchain(query_text, top_k=5):
-    """Searches ChromaDB for the best credit cards based on user input and generates a response."""
-    
-    # Retrieve top-matching credit card features from ChromaDB
-    chroma_store = Chroma(
-        collection_name="credit_card_embeddings",
-        embedding_function=embeddings.HuggingFaceEmbeddings(embeddings.api_url, embeddings.headers),
-        client=embeddings.client
+# Initialize embedding function
+embedding_function = embeddings.HuggingFaceEmbeddings(embeddings.api_url, embeddings.headers)
+
+# Ensure collections exist before accessing them
+if "consumer_finance_embeddings" not in embeddings.client.list_collections():
+    consumer_collection = embeddings.client.create_collection(name="consumer_finance_embeddings")
+else:
+    consumer_collection = embeddings.client.get_collection(name="consumer_finance_embeddings")
+
+if "business_finance_embeddings" not in embeddings.client.list_collections():
+    business_collection = embeddings.client.create_collection(name="business_finance_embeddings")
+else:
+    business_collection = embeddings.client.get_collection(name="business_finance_embeddings")
+
+print(f"✅ Consumer Embeddings: {consumer_collection.count()} | Business Embeddings: {business_collection.count()}")
+
+def query_consumer_chatbot(query_text, top_k=5):
+    consumer_chroma = Chroma(
+        collection_name="consumer_finance_embeddings",
+        embedding_function=embedding_function
     )
-    results = chroma_store.similarity_search(query_text, k=top_k)
+    results = consumer_chroma.similarity_search(query_text, k=top_k)
     
-    # Format results into a readable context
-    if not results:
-        context = "No relevant credit card matches found."
-    else:
-        context = "\n".join([f"- {doc.page_content}" for doc in results])
-    
-    # Generate response using OpenAI
+    context = "\n".join([f"- {doc.page_content}" for doc in results]) if results else "No relevant financial matches found."
+
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     completion = client.chat.completions.create(
         model="gpt-4",
+        temperature=0.2,
         messages=[
             {"role": "system", 
- "content": "You are a helpful financial advisor specializing in credit cards. DO NOT INCLUDE LINKS. Your goal is to recommend 3-5 cards that **EXACTLY** match the user's needs.  Prioritize accuracy over quantity. Formatting Guide: - Start with '💳 **Top Credit Card Matches for You**:' - List each card with emojis for readability - Keep it **short and to the point** (no unnecessary details) - Only include cards that match ALL requested criteria If no perfect match exists, suggest alternatives **briefly** without forcing irrelevant cards."},
+             "content": "You are a financial advisor helping everyday consumers. You provide clear, precise, and trustworthy financial advice on credit cards, personal loans, and financial literacy terms. DO NOT INCLUDE LINKS. Format output cleanly, removing any asterisks."},
             {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query_text}"}
         ]
     )
     
     return completion.choices[0].message.content
 
-# Test to see if embeddings exist
-collection = embeddings.client.get_collection(name="credit_card_embeddings")
-print(f"✅ Number of stored embeddings: {collection.count()}")
+def query_business_chatbot(query_text, top_k=5):
+    business_chroma = Chroma(
+        collection_name="business_finance_embeddings",
+        embedding_function=embedding_function
+    )
+    results = business_chroma.similarity_search(query_text, k=top_k)
+
+    context = "\n".join([f"- {doc.page_content}" for doc in results]) if results else "No relevant business financial matches found."
+
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    completion = client.chat.completions.create(
+        model="gpt-4",
+        temperature=0.2,
+        messages=[
+            {"role": "system", 
+             "content": "You are a financial advisor helping business owners. You provide clear, precise, and trustworthy advice on business credit cards, business loans, and finance terms relevant to small businesses and startups. DO NOT INCLUDE LINKS. Format output cleanly, removing all asterisks."},
+            {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query_text}"}
+        ]
+    )
+    
+    return completion.choices[0].message.content
 
 if __name__ == "__main__":
-    test_query = "I want a credit card with no annual fee and good travel rewards."
-    response = query_with_langchain(test_query)
-    print("\n💳 Chatbot Response:\n", response)
+    test_query1 = "What is a good credit card for travel with no annual fee?"
+    test_query2 = "I'm a small business owner. What are my best financing options?"
+
+    consumer_response = query_consumer_chatbot(test_query1)
+    business_response = query_business_chatbot(test_query2)
+
+    print("\n💳 Consumer Chatbot Response:\n", consumer_response)
+    print("\n🏢 Business Chatbot Response:\n", business_response)
