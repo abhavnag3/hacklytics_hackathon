@@ -11,7 +11,7 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-4">
         <LandingCard
           icon={<CreditCard className="h-6 w-6 text-blue-500" />}
-          title="Get a Credit Card"
+          title="Empower Your Finances"
           description="Find the perfect credit card tailored to your needs"
           href="/credit-chat"
         />
